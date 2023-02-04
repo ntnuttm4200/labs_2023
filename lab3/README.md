@@ -1,13 +1,6 @@
 
 # Lab 3 -- Socket Programming
 
-```python
-# private: will be reomved in the public version
-import py_compile
-py_compile.compile(file='test_lab3_private.py', cfile='test_lab3.pyc')
-
-# TA: you can check a sample solution in the ./solution directory
-```
 
 ## Introduction
 
