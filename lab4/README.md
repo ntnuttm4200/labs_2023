@@ -6,12 +6,6 @@ This lab aims to introduce you to the transport layer protocols. In particular, 
 
 For delivery, submit a PDF report where you answer **only** those questions marked with a **REPORT:**. 
 
-
-```python
-import py_compile
-py_compile.compile(file='test_lab4_part1_private.py', cfile='test_lab4_part1.pyc')
-```
-
 ## Lab Setup
 
 [Figure 1](#figure_1) shows the topology of the lab. You will use the lab setup for the following scenarios:
