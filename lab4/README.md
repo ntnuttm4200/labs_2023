@@ -444,3 +444,754 @@ Q15. **REPORT:** Briefly describe and compare what happens to the video stream u
 ## Task 5.2 -- Analyzing traffic under Network Delay
 
 Q16. **Extra Credit:** Perform a similar analysis as Task 4.3 for the video streaming under network delay. Try to find other tools/techniques that help you analyze network delay.
+
+
+# Lab 4 Part 2 -- Transport Layer (Reliable Transport Protocol)
+
+
+The goal of this lab is to introduce you to reliable transport protocols. First, you will implement a simple UDP sender and receiver as a baseline representing an unreliable transport protocol. Then, you will implement a reliable transport protocol on top of UDP. Your protocol implementation should provide reliable data transfer between two hosts and handle network scenarios such as packet loss, packet corruption, and delayed packets. As an example, you will implement the Go-Back-N protocol. 
+
+
+For delivery, submit a PDF report where you answer **only** those questions marked with a **REPORT:**.
+
+
+## Lab Setup
+
+
+Use the same setup as in Lab 4 Part 1. In detail, you will use the following:
+
+- Use the "server" container as your sender.
+
+- Use your "ntnu_server" as your receiver.
+
+- Use the "router" container to emulate packet loss, corruption, and delay.
+
+```python
+from test_lab4_part2 import TestLab4_part2
+check_progress = TestLab4_part2()
+check_progress.test_1_1()
+```
+
+# Milestone 1 -- Unreliable UDP
+
+In this milestone, you will implement a simple UDP sender and receiver as a baseline representing an unreliable transport protocol. For simplicity, the sender reads data from a file, makes a packet for each line, and sends it to the receiver. The receiver receives the packet and writes it into a file.
+
+
+## Task 1.1 -- UDP Sender
+
+You can find a skeleton code for the UDP sender in the file `udp_sender.py`. You need to complete the missing parts that are marked with `=== YOUR CODE HERE ===`.
+
+
+```python
+import socket
+import pickle
+
+# Basic logging configuration
+import logging
+logging.basicConfig(format='\r[%(levelname)s: line %(lineno)d] %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Packet class
+class Packet:
+    def __init__(self, data: str) -> None:
+        self.data = data
+
+
+# UDP sender class
+class UDP_Sender:
+    def __init__(self, sender_ip: str, sender_port: int, receiver_ip: str, receiver_port: int, data_file: str, timeout: float) -> None:
+
+        self.sender_ip = sender_ip
+        self.sender_port = sender_port
+        self.receiver_ip = receiver_ip
+        self.receiver_port = receiver_port
+        self.data_file = data_file
+        self.timeout = timeout
+
+        # Create a UDP socket
+        self.sock = # === YOUR CODE HERE ===
+
+        # bind the socket to the sender IP and port
+        # === YOUR CODE HERE ===
+
+        # Set timeout
+        self.sock.settimeout(timeout)
+
+        # Read data file line by line into a buffer (list)
+        with open(self.data_file, 'r') as f:
+            self.data_buffer = f.readlines()
+
+    
+    def udt_send(self, sndpkt: Packet) -> None:
+        # Serialize packet (for sending packet ob)
+        sndpkt = pickle.dumps(sndpkt)
+        # Send packet to the receiver
+        # === YOUR CODE HERE ===
+        logger.info('Sent pkt')
+
+
+    def make_pkt(self, data: str) -> Packet:
+        # Create packet
+        pkt = Packet(data)
+        # Return packet
+        return pkt
+
+    def run(self) -> None:
+        logger.info('############## Sending data ##############')
+        # loop through data buffer, make packet from each line, and send packet
+        for data in self.data_buffer:
+            # Create packet from data
+            sndpkt = self.make_pkt(data)
+            # Send packet to receiver, using udt_send()
+            self.udt_send(sndpkt)
+
+        # After sending all data, send EOT packet
+        data = 'EOT'
+        # Create packet from data
+        sndpkt = self.make_pkt(data)
+        # Send packet to receiver, using udt_send()
+        self.udt_send(sndpkt)
+        logger.info('############## Sent EOT Packet ##############')
+
+        # Close socket
+        self.sock.close()
+
+if __name__ == '__main__':
+    
+    # Constants
+    SENDER_IP = # === YOUR CODE HERE ===
+    SENDER_PORT = # === YOUR CODE HERE ===
+    RECEIVER_IP = # === YOUR CODE HERE ===
+    RECEIVER_PORT = # === YOUR CODE HERE ===
+    DATA_FILE = '/home/ttm4200/work_dir/data.txt'
+    TIMEOUT = 1.0
+
+    # Create UDP sender
+    udp_sender = # === YOUR CODE HERE ===
+
+    # Run UDP sender
+    # === YOUR CODE HERE ===
+```
+    
+
+## Task 1.2 -- UDP Receiver
+
+You can find a skeleton code for the UDP receiver in the file `udp_receiver.py`. You need to complete the missing parts that are marked with `=== YOUR CODE HERE ===`.
+
+```python
+import socket
+import pickle
+
+# Basic logging configuration
+import logging
+logging.basicConfig(format='\r[%(levelname)s: line %(lineno)d] %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Packet class
+class Packet:
+    def __init__(self, data: str) -> None:
+        self.data = data
+
+
+# UDP receiver class
+class UDP_Receiver:
+    def __init__(self, receiver_ip: str, receiver_port: int, data_file: str, timeout: float, receive_buffer_size: int) -> None:
+
+        self.receiver_ip = receiver_ip
+        self.receiver_port = receiver_port
+        self.data_file = data_file
+        self.timeout = timeout
+        self.receive_buffer_size = receive_buffer_size
+
+        # Create a UDP socket
+        self.sock = # === YOUR CODE HERE ===
+
+        # bind the socket to the receiver IP and port
+        # === YOUR CODE HERE ===
+
+        # Set timeout
+        self.sock.settimeout(timeout)
+
+        # Open data file (overwrite existing file)
+        self.data_file = open(self.data_file, 'w')
+
+    
+    def rdt_recv(self) -> Packet:
+        # Receive packet
+        rcvpkt, addr = # === YOUR CODE HERE ===
+        logger.info('Received packet')
+        # unpickle packet
+        rcvpkt = pickle.loads(rcvpkt)
+        # Return packet
+        return rcvpkt
+
+    def extract(self, rcvpkt: Packet) -> str:
+        # Extract data
+        data = rcvpkt.data
+        # Return data
+        return data
+
+    def deliver_data(self, data: str) -> None:
+        # Write data to file
+        self.data_file.write(data)
+
+
+    def run(self) -> None:
+        # Receive data
+        logger.info('############## Receiving data ##############')
+        while True:
+            try:
+                # Receive packet using rdt_recv()
+                rcvpkt = self.rdt_recv()
+
+            # If timeout, break
+            except socket.timeout:
+                logger.info('Timeout')
+                break
+
+            # Extract data from received packet
+            data = self.extract(rcvpkt)
+
+            # check if data is EOT
+            if data == 'EOT':
+                logger.info('############## Received EOT packet ##############')
+                break
+
+            # Write data to file using deliver_data()
+            self.deliver_data(data)
+
+        # Close data file
+        self.data_file.close()
+
+        # Close socket
+        self.sock.close()
+
+if __name__ == '__main__':
+        
+    # Constants
+    RECEIVER_IP = # === YOUR CODE HERE ===
+    RECEIVER_PORT = # === YOUR CODE HERE ===
+    DATA_FILE = 'data.txt'
+    TIMEOUT = 10.0
+    RECEIVE_BUFFER_SIZE = 1024
+
+    # Create UDP receiver
+    udp_receiver = # === YOUR CODE HERE ===
+
+    # Run UDP receiver
+    # === YOUR CODE HERE ===
+```
+
+## Task 1.3 -- Run UDP Sender and Receiver
+
+- Run the "udp_receiver.py" on the "ntnu_server".
+
+- Run the "udp_sender.py" on the "server" container.
+
+- Check that the sender and receiver are working correctly. There should be a "data.txt" file in the "ntnu_server". The file's content should be the same as the "/home/ttm4200/work_dir/data.txt" file in the "server" container.
+
+
+## Task 1.4 -- Run UDP Sender and Receiver with Packet Loss
+
+- On the "router" container, introduce 50% packet loss.
+
+```bash
+sudo tc qdisc add dev ether0 root netem loss 50%
+```
+
+- Run your UDP sender and receiver.
+
+- Check the content of the "data.txt" file in the "ntnu_server" and compare it with the "/home/ttm4200/work_dir/data.txt" file in the "server" container.
+
+
+- Remove the packet loss.
+
+```bash
+sudo tc qdisc del dev ether0 root
+```
+
+Q1. **REPORT**: Draw a sequence diagram of your implementation's operation under packet loss. Briefly explain your sequence diagram.
+
+
+## Task 1.5 -- Run UDP Sender and Receiver with Packet Corruption
+
+- On the "router" container, introduce 50% packet corruption.
+
+```bash
+sudo tc qdisc add dev ether0 root netem corrupt 50%
+```
+
+- Run your UDP sender and receiver.
+
+- Check the content of the "data.txt" file in the "ntnu_server" and compare it with the "/home/ttm4200/work_dir/data.txt" file in the "server" container.
+
+Q2. **REPORT**: Do you see corrupted lines in the "data.txt" file in the "ntnu_server"? Or do you see missing lines? Why?
+
+- Remove the packet corruption.
+
+```bash
+sudo tc qdisc del dev ether0 root
+```
+
+Q3. **REPORT**: Draw a sequence diagram of your implementation's operation under packet corruption. Briefly explain your sequence diagram.
+
+
+# Milestone 2 -- Go-Back-N Protocol
+
+In this milestone, you will improve the reliability of your transport protocol by implementing the Go-Back-N protocol. Your implementation should follow the FSM (Finite State Machine) shown in the book (Figure 3.20 and Figure 3.21).
+
+## Task 2.1 -- GBN Sender
+
+You can find a skeleton code for the GBN sender in the file `gbn_sender.py`. You need to complete the missing parts that are marked with `=== YOUR CODE HERE ===`. Follow the FSM and the circles in [Figure 1](#figure_2) for hints.
+
+
+<a id='figure_1'></a>
+
+|<img src="figures_2023/sender2.png" />|
+|:--:|
+| **Figure 1: GBN sender (Kurose, J. and Ross, K)** |
+
+
+```python
+import socket
+import pickle
+import sys
+import binascii
+
+# Basic logging configuration
+import logging
+logging.basicConfig(format='\r[%(levelname)s: line %(lineno)d] %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Packet class
+class Packet:
+    def __init__(self, seq_num: int, data: str, checksum: int) -> None:
+        self.seq_num = seq_num
+        self.data = data
+        self.checksum = checksum
+
+
+# GBN sender class
+class GBN_Sender:
+    def __init__(self, server_ip: str, server_port: int, receiver_ip: str, receiver_port: int, window_size: int, timeout: float,  data_file: str, receive_buffer_size: int) -> None:
+        self.server_ip = server_ip
+        self.server_port = server_port
+        self.receiver_ip = receiver_ip
+        self.receiver_port = receiver_port
+        self.window_size = window_size
+        self.timeout = timeout
+        self.data_file = data_file
+        self.receive_buffer_size = receive_buffer_size
+
+        # Create a UDP socket
+        self.sock = # === YOUR CODE HERE ===
+        
+        # bind the socket to the sender's IP and port
+        # === YOUR CODE HERE ===
+
+        # Set timeout
+        self.sock.settimeout(self.timeout)
+
+        # Read data file
+        with open(self.data_file, 'r') as f:
+            self.data_buffer = f.readlines()
+
+
+    def udt_send(self, sndpkt: Packet) -> None:
+        logger.info('send pkt%d', sndpkt.seq_num)
+        # serialize packet (necessary for sending packet object over socket)
+        sndpkt = pickle.dumps(sndpkt)
+        # Send packet to the receiver
+        # === YOUR CODE HERE ===
+
+
+    def make_pkt(self, nextseqnum: int, data: str, checksum: int) -> Packet:
+        # Create packet
+        pkt = Packet(nextseqnum, data, checksum)
+        # Return packet
+        return pkt
+
+
+    def getacknum(self, rcvpkt: Packet) -> int:
+        # Return ACK number from received packet
+        return rcvpkt.seq_num
+
+    def notcorrupt(self, rcvpkt: Packet) -> bool:
+        # Check if received packet is corrupted
+        checksum = self.compute_checksum(rcvpkt.seq_num, rcvpkt.data)
+        return checksum == rcvpkt.checksum
+
+    def rdt_rcv(self) -> Packet:
+        # Receive ACK from receiver
+        rcvpkt, addr = # === YOUR CODE HERE ===
+        rcvpkt = pickle.loads(rcvpkt)
+        logger.info('rcv ACK%d', self.getacknum(rcvpkt))
+        return rcvpkt
+
+    def compute_checksum(self, seqnum: int, data: str) -> int:
+        # Compute checksum from bytes-like (next_seq_num and data)
+        checksum = binascii.crc32((str(seqnum) + data).encode())
+        return checksum
+
+
+    def run(self) -> None:
+        logger.info('############## Sending packets ##############')
+
+        # Initialize variables
+        # FIGURE 1, CIRCLE 1: INITIAL STATE OF GBN SENDER
+        # Start with 0 to be compatible with python (0 based indexing)
+        base = 0
+        nextseqnum = 0
+
+        # loop until all packets in data buffer are sent
+        while base < len(self.data_buffer):
+
+            # FIGURE 1, CIRCLE 2: rdt_send(data)
+            while nextseqnum < base + self.window_size and nextseqnum < len(self.data_buffer):
+                # Get data from data buffer
+                data = self.data_buffer[nextseqnum]
+                # checksum from bytes-like (next_seq_num and data)
+                checksum = self.compute_checksum(nextseqnum, data)
+
+                # Create packet using make_pkt()
+                sndpkt = # === YOUR CODE HERE ===
+
+                # Send packet using udt_send()
+                # === YOUR CODE HERE ===
+
+                if base == nextseqnum:
+                    # Start timer
+                    # By sending a packet through socket, it will start the socket timeout
+                    pass
+                
+                # Increment next sequence number
+                # === YOUR CODE HERE ===
+
+            try:
+                # FIGURE 1, CIRCLE 4: rdt_rcv(rcvpkt) && notcorrupt(rcvpkt)
+                # Receive ACK from receiver, using rdt_rcv()
+                rcvpkt = # === YOUR CODE HERE ===
+                # Check if ACK is corrupted, using notcorrupt()
+                if self.notcorrupt(rcvpkt):
+                    # Update base using getacknum()
+                    base = # === YOUR CODE HERE ===
+                    
+                    if base == nextseqnum:
+                        # Stop timer
+                        # We are using the socket timeout, thus when it receives ACK, it will stop the timer automatically
+                        pass
+                    else:
+                        # Start timer
+                        # By receiving a packet through socket, it will start the socket timeout
+                        pass
+                # FIGURE 1, CIRCLE 5: rdt_rcv(rcvpkt) && corrupt(rcvpkt)
+                else:
+                    # Do nothing
+                    pass
+
+            # FIGURE 1, CIRCLE 3: timeout
+            except socket.timeout:
+                logger.info('pkt%d timeout', base)
+                # resend all packets in window
+                # HINT: reset next_seq_num to base, thus when loop continues, it will resend all packets in window in the second while loop
+                # === YOUR CODE HERE ===
+
+        # After all packets are sent and ACKs are received, send EOT packet
+        data = 'EOT'
+        checksum = self.compute_checksum(nextseqnum, data)
+        # Create EOT packet, using make_pkt()
+        sndpkt = # === YOUR CODE HERE ===
+        # Send EOT packet, using udt_send()
+        # === YOUR CODE HERE ===
+        logger.info(' ############## Sent EOT Packet ##############')
+        # Close socket
+        self.sock.close()
+
+
+if __name__ == '__main__':
+
+    # Constants
+    SERVER_IP = # === YOUR CODE HERE ===
+    SERVER_PORT = # === YOUR CODE HERE ===
+    RECEIVER_IP = # === YOUR CODE HERE ===
+    RECEIVER_PORT = # === YOUR CODE HERE ===
+    WINDOW_SIZE = # === YOUR CODE HERE ===
+    TIMEOUT = # === YOUR CODE HERE ===. Try several values (e.g. 1.0, 3.0 and 5.0)
+    DATA_FILE = '/home/ttm4200/work_dir/data.txt'
+    RECEIVE_BUFFER_SIZE = 1024
+
+    # Create GBN sender
+    gbn_sender = # === YOUR CODE HERE ===
+
+    # Run GBN sender
+    # === YOUR CODE HERE ===
+```
+
+
+## Task 2.2 -- GBN Receiver
+
+You can find the GBN receiver skeleton code in the file `gbn_receiver.py`. You nee
+
+You can find a skeleton code for the GBN in the file `gbn_receiver.py`. You need to complete the missing parts that are marked with `=== YOUR CODE HERE ===`. Follow the FSM and the circles in [Figure 2](#figure_2) for hints.
+
+<a id='figure_2'></a>
+
+|<img src="figures_2023/receiver2.png" />|
+|:--:|
+| **Figure 2: GBN receiver (Kurose, J. and Ross, K)** |
+
+
+```python
+import socket
+import pickle
+import sys
+import binascii
+
+# Basic logging configuration
+import logging
+logging.basicConfig(format='\r[%(levelname)s: line %(lineno)d] %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Packet class
+class Packet:
+    def __init__(self, seq_num: int, data: str, checksum: int) -> None:
+        self.seq_num = seq_num
+        self.data = data
+        self.checksum = checksum
+
+
+# GBN receiver class
+class GBN_Receiver:
+    def __init__(self, server_ip: str, server_port: int, receiver_ip: str, receiver_port: int, window_size: int, timeout: float,  data_file: str, receive_buffer_size: int) -> None:
+        self.server_ip = server_ip
+        self.server_port = server_port
+        self.receiver_ip = receiver_ip
+        self.receiver_port = receiver_port
+        self.window_size = window_size
+        self.timeout = timeout
+        self.data_file = data_file
+        self.receive_buffer_size = receive_buffer_size
+
+        # Create a UDP socket
+        self.sock = # === YOUR CODE HERE ===
+
+        # bind the socket to the receiver's IP and port
+        # === YOUR CODE HERE ===
+
+        # Set the socket timeout
+        self.sock.settimeout(self.timeout)
+
+
+        # Open data file (overwrites existing file)
+        self.data_file = open(self.data_file, 'w')
+
+
+    def rdt_rcv(self) -> Packet:
+        # Receive packet from the sender
+        rcvpkt, addr = # === YOUR CODE HERE ===
+        rcvpkt = pickle.loads(rcvpkt)
+        logger.info('rcv pkt%d', rcvpkt.seq_num)
+        return rcvpkt
+
+    def udt_send(self, sndpkt: Packet) -> None:
+        logger.info('send ACK%d', sndpkt.seq_num)
+        # serialize packet (necessary for sending packet object over socket)
+        sndpkt = pickle.dumps(sndpkt)
+        # Send packet (ACK) to the sender
+        # === YOUR CODE HERE ===
+
+    def make_pkt(self, seqnum: int, ACK: str, checksum: int) -> Packet:
+        # Create packet
+        pkt = Packet(seqnum, ACK, checksum)
+        # Return packet
+        return pkt
+    
+    def notcorrupt(self, rcvpkt: Packet) -> bool:
+        # Check if packet is corrupted
+        checksum = self.compute_checksum(rcvpkt.seq_num, rcvpkt.data)
+        return checksum == rcvpkt.checksum
+
+    def extract(self, rcvpkt: Packet) -> str:
+        # Return data
+        return rcvpkt.data
+
+    def hasseqnum(self, rcvpkt: Packet, expectedseqnum: int) -> bool:
+        # Check if packet has expected sequence number
+        return rcvpkt.seq_num == expectedseqnum
+
+
+    def deliver_data(self, data: str) -> None:
+        # Write data to file
+        self.data_file.write(data)
+    
+    def compute_checksum(self, seqnum: int, data: str) -> int:
+        # Compute checksum
+        checksum = binascii.crc32((str(seqnum) + data).encode())
+        return checksum
+        
+    def run(self) -> None:
+        logger.info('############## Receiving data ##############')
+
+        # Initialize variables
+        # FIGURE 2, CIRCLE 1: INITIAL STATE OF GBN RECEIVER
+        # Start with 0 to be compatible with python (0 based indexing)
+        expectedseqnum = 0
+        # initialize ACK: start with -1 to indicate that you haven't received packet 0 yet
+        ACK = 'ACK'
+        checksum = self.compute_checksum(-1, ACK)
+        sndpkt = self.make_pkt(-1, ACK, checksum)
+
+        while True:
+            try:
+                # Receive packet using rdt_rcv()
+                rcvpkt = # === YOUR CODE HERE ===
+
+            # Timeout
+            except socket.timeout:
+                logger.info('########## Timeout ##########')
+                break
+
+            # FIGURE 2, CIRCLE 2: rdt_rcv() && notcorrupt() && hasseqnum(rcvpkt, expectedseqnum)
+            if self.notcorrupt(rcvpkt) and self.hasseqnum(rcvpkt, expectedseqnum):
+                # Extract data using extract()
+                data = # === YOUR CODE HERE ===
+                if data == 'EOT':
+                    # End of transmission
+                    logger.info('########## Received EOT Packet ##########')
+                    break
+                # Deliver data using deliver_data()
+                # === YOUR CODE HERE ===
+                
+                checksum = self.compute_checksum(expectedseqnum, ACK)
+                # make ACK packet using make_pkt()
+                sndpkt = # === YOUR CODE HERE ===
+                # send ACK packet using udt_send()
+                # === YOUR CODE HERE ===
+                # Increment expected sequence number
+                # === YOUR CODE HERE ===
+
+            # FIGURE 2, CIRCLE 3: default: send ACK of last correctly received packet
+            else:
+                # Send sndpkt using udt_send()
+                # === YOUR CODE HERE ===
+                
+
+        # Close data file
+        self.data_file.close()
+
+        # Close socket
+        self.sock.close()
+            
+if __name__ == '__main__':
+
+    # Constants
+    SERVER_IP = # === YOUR CODE HERE ===
+    SERVER_PORT = # === YOUR CODE HERE ===
+    RECEIVER_IP = #
+    RECEIVER_PORT = # === YOUR CODE HERE ===
+    WINDOW_SIZE = # === YOUR CODE HERE ===
+    TIMEOUT = 10.0
+    DATA_FILE = 'data.txt'
+    RECEIVE_BUFFER_SIZE = 1024
+
+    # Create GBN receiver
+    gbn_receiver = # === YOUR CODE HERE === , Use higher timeout value than the sender
+
+    # Run GBN receiver
+    # === YOUR CODE HERE ===
+```
+
+
+## Task 2.3 -- Run GBN Sender and Receiver
+
+
+- Run the "gbn_receiver.py" script on the "ntnu_server".
+
+- Run the "gbn_sender.py" script on the "server" container.
+
+
+- Check that the sender and receiver are working properly. Compare the content of the "data.txt" file on the "ntnu_server" with the "/home/ttm4200/work_dir/data.txt" file on the "server" container. They should be the same.
+
+```python
+from test_lab4_part2 import TestLab4_part2
+check_progress = TestLab4_part2()
+check_progress.test_1_2()
+```
+
+## Task 2.4 -- Run GBN Sender and Receiver with Packet Loss
+
+
+
+- On the "router" container, introduce 50% packet loss.
+
+```bash
+sudo tc qdisc add dev ether0 root netem loss 50%
+```
+
+- Run your GBN sender and receiver.
+
+- Check the content of the "data.txt" file in the "ntnu_server" and compare it with the "/home/ttm4200/work_dir/data.txt" file in the "server" container. They should be the same.
+
+- Remove the packet loss.
+
+```bash
+sudo tc qdisc del dev ether0 root
+```
+
+Q4. **REPORT**: Draw a sequence diagram of your GBN implementation's operation under packet loss. Briefly explain your sequence diagram.
+
+
+## Task 2.5 -- Run GBN Sender and Receiver with Packet Corruption
+
+- On the "router" container, introduce 50% packet corruption.
+
+```bash
+sudo tc qdisc add dev ether0 root netem corrupt 50%
+```
+
+- Run your GBN sender and receiver.
+
+- Check the content of the "data.txt" file in the "ntnu_server" and compare it with the "/home/ttm4200/work_dir/data.txt" file in the "server" container. They should be the same.
+
+
+- Remove the packet corruption.
+
+```bash
+sudo tc qdisc del dev ether0 root
+```
+
+Q5. **REPORT**: Draw a sequence diagram of your GBN implementation's operation under packet corruption. Briefly explain your sequence diagram.
+
+Q6. **REPORT**: Does the "notcorrupt()" function in the "gbn_receiver.py" ever return "False" when running your implementation? Why or why not?
+
+
+
+## Task 2.6 -- Run GBN Sender and Receiver with Packet Delay
+
+- On the "router" container, introduce a delay **higher** than the "TIMEOUT" value in your "gbn_sender.py".
+
+```bash
+sudo tc qdisc add dev ether0 root netem delay [DELAY]s
+```
+
+- Run your GBN sender and receiver.
+
+- Check the content of the "data.txt" file in the "ntnu_server" and compare it with the "/home/ttm4200/work_dir/data.txt" file in the "server" container. They should be the same.
+
+- Remove the packet delay.
+
+```bash
+sudo tc qdisc del dev ether0 root
+```
+
+Q7. **REPORT**: Draw a sequence diagram of your GBN implementation's operation under packet delay.
+
+## Optional Exercise 
+
+We implemented a simple end-of-transmission (EOT) mechanism in the GBN. However, this is not a reliable mechanism. If the EOT packet is lost, the receiver will wait for the EOT packet until the timeout occurs.
+
+Q8. **EXTRA CREDIT**: Implement a reliable EOT mechanism in the GBN. This mechanism should handle the case where the EOT packet is lost.
