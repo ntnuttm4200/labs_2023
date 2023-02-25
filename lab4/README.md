@@ -1188,7 +1188,7 @@ sudo tc qdisc add dev ether0 root netem delay [DELAY]s
 sudo tc qdisc del dev ether0 root
 ```
 
-Q7. **REPORT**: Draw a sequence diagram of your GBN implementation's operation under packet delay.
+Q7. **REPORT**: Draw a sequence diagram of your GBN implementation's operation under packet delay. Briefly explain your sequence diagram.
 
 ## Optional Exercise 
 
