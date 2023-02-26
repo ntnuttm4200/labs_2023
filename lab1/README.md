@@ -435,7 +435,7 @@ The goal of this milestone is to learn how to analyze network traffic and extrac
 
 <a id='figure_4'></a>
 
-|<img src="figures/wireshark.jpg" width="800" height="800" />|
+|<img src="figures/wireshark.jpg" />|
 |:--:| 
 | *Figure 4: Wireshark main Window* |
 
