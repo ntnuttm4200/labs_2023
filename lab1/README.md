@@ -17,14 +17,14 @@ By the end of this milestone, you will build a system, as shown in [figure 1](#f
 
 <a id='figure_1'></a>
 
-|<img src="figures/docker.jpg" width="800" height="800" />|
+|<img src="figures/docker.jpg" />|
 |:--:| 
 | *Figure 1: Docker Image, Containers, and Networks* |
 
 
 <a id='figure_2'></a>
 
-|<img src="figures/ssh.jpg" width="800" height="800" />|
+|<img src="figures/ssh.jpg" />|
 |:--:| 
 | *Figure 2: Docker Attach, SSH,  Port Mapping, and Volumes* |
 
