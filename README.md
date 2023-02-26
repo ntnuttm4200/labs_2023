@@ -27,3 +27,26 @@ We will use this repository to distribute the lab assignments.
     git config --global user.name "Firstname Lastname"
     git config --global user.email "Your email"
     ```
+
+# Lab assignments
+
+The course consists of 6 lab assignments. Theses assignments are:
+
+- [Lab 0: Server setup, Basics of Linux, and JuptyerLab](lab0/README.md)
+
+- [Lab 1: Basic Tools: Docker, Docker Compose, Tcpdump, Wireshark, and Tmux](lab1/README.md)
+
+- [Lab 2: Application Layer: Web, Email, and DNS](lab2/README.md)
+
+- [Lab 3: Socket Programming](lab3/README.md)
+
+- [Lab4 Part1: Transport Layer (Connectionless vs Connection-oriented)](lab4/README.md)
+
+- [Lab4 Part2: Transport Layer (Reliable Transport Protocol)](lab4/README.md)
+
+- [Lab5: Network Layer](lab5/README.md)
+
+- [Lab6: Security in Computer Networks](lab6/README.md)
+
+
+

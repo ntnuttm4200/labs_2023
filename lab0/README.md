@@ -1,4 +1,6 @@
 
+# Lab 0 -- Server Setup, Basic Linux, and JupyterLab
+
 ## Introduction
 
 This lab introduces you to the tools you will use throughout the course. It consists of three parts:
