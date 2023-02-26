@@ -354,7 +354,7 @@ It lets you switch easily between several programs in one terminal. Additionally
 
 <a id='figure_3'></a>
 
-|<img src="figures/tmux.png"  width="700" height="700" />|
+|<img src="figures/tmux.png" />|
 |:--:| 
 | *Figure 3: Tmux example* |
 
